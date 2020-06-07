@@ -295,7 +295,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
         } catch (RserveException ex) {
             Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-
+            c.close();
         }
 
     }

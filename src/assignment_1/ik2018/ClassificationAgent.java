@@ -93,9 +93,8 @@ public class ClassificationAgent extends Agent implements RserveCallback {
         String trainData = doDataFrame(labelNames, "trainingData");
         String testData = doDataFrame(labelNames, "testingData");
         String[] bindData = {"trainingData", "testingData"};
-//        String[] dFName = {"trainingData", "testingData"};
-//        String[] bData = new String[2];
 
+        //Each method has to receive a connection otherwise it doesn't work
         try {
             runLibraries(c, libs);
             doEvalArray(c, train_Vectors);
@@ -119,7 +118,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
         try {
             System.out.println("runLibraries");
             for (String lib : libs) {
-                c.voidEval("library(\"" + lib + "\")");
+                doEval(c, "library(\"" + lib + "\")");
                 System.out.println(lib);
             }
             c.eval("set.seed(524)");
@@ -182,30 +181,21 @@ public class ClassificationAgent extends Agent implements RserveCallback {
     ) {
         String function = "" + functionName + "<-function(x) {\n"
                 + "  return ((x - min(x)) / (max(x) - min(x)))}";
-        try {
-            System.out.println("createNormFunction");
-            c.eval(function);
-        } catch (RserveException ex) {
-            Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        System.out.println("createNormFunction");
+        doEval(c, function);
+        //c.eval(function);
     }
 
     //We normalize our data frame using the previously created normalize function
     //We also make sure to add our nominal data back, i.e. the target (UNS)
     @Override
     public void normalizeDataframe(RConnection c, String dName) {
-        try {
-            String ourTargets = "temp <-" + dName + "$UNS";
-            String nTrainingData = dName + "<-as.data.frame(lapply(" + dName + "[1:5],normalize_i))";
-            String tempTargets = dName + "$UNS<-temp";
-            c.eval(ourTargets);
-            c.eval(nTrainingData);
-            c.eval(tempTargets);
-            System.out.println("NormalizeDataFrame");
-        } catch (RserveException ex) {
-            Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        String ourTargets = "temp <-" + dName + "$UNS";
+        String nTrainingData = dName + "<-as.data.frame(lapply(" + dName + "[1:5],normalize_i))";
+        String tempTargets = dName + "$UNS<-temp";
+        String[] evals = new String[]{ourTargets, nTrainingData, tempTargets};
+        doEvalArray(c, evals);
+        System.out.println("NormalizeDataFrame");
     }
 
     //Simple eval that we run through Rserve
@@ -213,7 +203,6 @@ public class ClassificationAgent extends Agent implements RserveCallback {
     public void doEval(RConnection c, String eval) {
         try {
             c.eval(eval);
-            System.out.println(eval);
         } catch (RserveException ex) {
             Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -229,8 +218,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
                 if (response.inherits("try-error")) {
                     System.out.println(response.asString());
                     c.eval(eval);
-                } else {
-                    System.out.println(eval);
+                    return;
                 }
             } catch (REngineException | REXPMismatchException ex) {
                 Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,61 +230,51 @@ public class ClassificationAgent extends Agent implements RserveCallback {
     @Override
     public void doBindData(RConnection c, String[] dataFrames
     ) {
-        try {
-            System.out.println("doBindData");
-            c.eval("allData<-rbind(" + dataFrames[0] + "," + dataFrames[1] + ")");
-        } catch (RserveException ex) {
-            System.out.println(ex.getMessage());
-        }
+        System.out.println("doBindData");
+        doEval(c, "allData<-rbind(" + dataFrames[0] + "," + dataFrames[1] + ")");
     }
 
     //Method that runs our kFold crossvalidation
     @Override
     public void doKfoldCrossvalidation(RConnection c, int k, String data
     ) {
-        try {
-            System.out.println("kFoldCrossvalidComputing");
-            String s = "";
-            int kf = k;
-            if (kf <= 1) {
-                System.out.println("You can't fold by one. kfold requires at least two folds");
-            }
-            String[] ifs = new String[kf + 1];
-            matrixNames = new String[kf + 1];
-            //https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
-            //We run our shuffling and folds creation 
-            c.eval("theData<-allData[sample(nrow(" + data + ")),]");
-            c.eval("folds<-cut(seq(1,nrow(" + data + ")),breaks=" + k + ",labels=FALSE)");
-            //For what ever number the user has entered, we create the appropriate string containing the necessary
-            //amount of matrixes
-            //We also add to matrixNames array for later use
-            for (int i = 1; i < kf + 1; i++) {
-                if (i == 1) {
-                    ifs[i] = "if (i == 1)\n"
-                            + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)";
-                    matrixNames[i] = "confusionMatrix_" + i + "";
-                } else {
-                    ifs[i] = " else if(i == " + i + ")\n"
-                            + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)\n";
-                    matrixNames[i] = "confusionMatrix_" + i + "";
-                }
-                s = s + ifs[i];
-            }
-            //loop amount is based on the user input stored in kf
-            String crossvalidation = "for(i in 1:" + kf + "){\n"
-                    + "testIdx<-which(folds==i,arr.ind=TRUE)\n"
-                    + "testingData<-theData[testIdx, ]\n"
-                    + "trainingData<-theData[-testIdx, ]\n"
-                    + "result<-knn(trainingData[1:5], testingData[1:5], trainingData$UNS)\n"
-                    + s
-                    + "}";
-            //We send the string to our computation method to be run
-            doComputations(c, crossvalidation);
-        } catch (RserveException ex) {
-            Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            c.close();
+        System.out.println("kFoldCrossvalidComputing");
+        String s = "";
+        int kf = k;
+        if (kf <= 1) {
+            System.out.println("You can't fold by one. kfold requires at least two folds");
         }
+        String[] ifs = new String[kf + 1];
+        matrixNames = new String[kf + 1];
+        //https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
+        //We run our shuffling and folds creation 
+        doEval(c, "theData<-allData[sample(nrow(" + data + ")),]");
+        doEval(c, "folds<-cut(seq(1,nrow(" + data + ")),breaks=" + k + ",labels=FALSE)");
+        //For what ever number the user has entered, we create the appropriate string containing the necessary
+        //amount of matrixes
+        //We also add to matrixNames array for later use
+        for (int i = 1; i < kf + 1; i++) {
+            if (i == 1) {
+                ifs[i] = "if (i == 1)\n"
+                        + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)";
+                matrixNames[i] = "confusionMatrix_" + i + "";
+            } else {
+                ifs[i] = " else if(i == " + i + ")\n"
+                        + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)\n";
+                matrixNames[i] = "confusionMatrix_" + i + "";
+            }
+            s = s + ifs[i];
+        }
+        //loop amount is based on the user input stored in kf
+        String crossvalidation = "for(i in 1:" + kf + "){\n"
+                + "testIdx<-which(folds==i,arr.ind=TRUE)\n"
+                + "testingData<-theData[testIdx, ]\n"
+                + "trainingData<-theData[-testIdx, ]\n"
+                + "result<-knn(trainingData[1:5], testingData[1:5], trainingData$UNS)\n"
+                + s
+                + "}";
+        //We send the string to our computation method to be run
+        doComputations(c, crossvalidation);
 
     }
 
@@ -322,7 +300,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
                     //https://stackoverflow.com/questions/33081702/accuracy-precision-and-recall-for-multi-class-model?rq=1
                     //Create our precision variables and print them under the Accuracy
                     String precision = "precision_" + i + " <- diag(" + matrixNames[i] + ")/colSums(" + matrixNames[i] + ")*100";
-                    c.eval(precision);
+                    doEval(c, precision);
                     String pResult = c.eval("paste(capture.output(precision_" + i + "), collapse='\\n')").asString();
                     System.out.println("\n" + pResult);
                 }
@@ -333,6 +311,8 @@ public class ClassificationAgent extends Agent implements RserveCallback {
             Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
         } catch (REngineException ex) {
             Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            c.close();
         }
     }
 

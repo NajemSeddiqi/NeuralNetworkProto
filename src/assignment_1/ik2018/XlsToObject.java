@@ -6,6 +6,7 @@
 package assignment_1.ik2018;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -34,9 +35,10 @@ public class XlsToObject {
     }
     
     /**Creates an arraylist of student type by mapping the cells to student fields
-     * @return the arraylist of student
+     * @return the arraylist of student 
+     * @throws java.io.IOException 
      **/
-    public ArrayList<Student> getData() {
+    public ArrayList<Student> getData() throws IOException {
         try {
             Sheet sheet = wb.getSheetAt(sheetAt);
             studentList = new ArrayList<>();
@@ -74,9 +76,10 @@ public class XlsToObject {
                 }
                 studentList.add(student);
             }
-            wb.close();
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
+        } finally {
+            wb.close();
         }
         return studentList;
     }

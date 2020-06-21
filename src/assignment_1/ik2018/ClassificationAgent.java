@@ -8,7 +8,6 @@ package assignment_1.ik2018;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import java.io.Serializable;
 import java.util.List;
@@ -24,7 +23,7 @@ import org.rosuda.REngine.Rserve.RserveException;
  *
  * @author Najem
  */
-public class ClassificationAgent extends Agent implements RserveCallback {
+public class ClassificationAgent extends Agent implements RserveInterface {
 
     //Store the matrix names here for easier solutions, "see below"
     private String[] matrixNames;
@@ -131,48 +130,47 @@ public class ClassificationAgent extends Agent implements RserveCallback {
     //Create vectors based on case names being the column names
     @Override
     public String doVector(List<Student> data, String cName) {
-        String st = cName + "<-c(";
+        StringBuilder st = new StringBuilder(cName + "<-c(");
         String comma = ", ";
         for (Student dt : data) {
             switch (cName) {
                 case "STG":
-                    st = st + dt.getSTG() + comma;
+                    st.append(dt.getSTG()).append(comma);
                     break;
                 case "SCG":
-                    st = st + dt.getSCG() + comma;
+                    st.append(dt.getSCG()).append(comma);
                     break;
                 case "STR":
-                    st = st + dt.getSTR() + comma;
+                    st.append(dt.getSTR()).append(comma);
                     break;
                 case "LPR":
-                    st = st + dt.getLPR() + comma;
+                    st.append(dt.getLPR()).append(comma);
                     break;
                 case "PEG":
-                    st = st + dt.getPEG() + comma;
+                    st.append(dt.getPEG()).append(comma);
                     break;
                 case "UNS":
-                    st = st + dt.getUNS() + comma;
+                    st.append(dt.getUNS()).append(comma);
                     break;
             }
         }
         //We need to substring the last value otherwise a comma follows it and that returns an error
-        st = st + ")";
-        String ss = st.substring(0, st.length() - 3) + "" + st.substring(st.length() - 2);
-        return ss;
+        st.append(")");
+        return st.substring(0, st.length() - 3) + "" + st.substring(st.length() - 2);
     }
 
     //For each loop, we add the vectors to the our data frame
     @Override
     public String doDataFrame(String[] cNames, String dName) {
-        String dataFrame = dName + "<-data.frame(";
+        StringBuilder dataFrame = new StringBuilder(dName + "<-data.frame(");
         for (int i = 0; i < cNames.length; i++) {
             if (i != 5) {
-                dataFrame = dataFrame + cNames[i] + ", ";
+                dataFrame.append(cNames[i]).append(", ");
             } else {
-                dataFrame = dataFrame + cNames[i] + ")";
+                dataFrame.append(cNames[i]).append(")");
             }
         }
-        return dataFrame;
+        return dataFrame.toString();
     }
 
     //We create our normalize function through Rserve
@@ -239,13 +237,12 @@ public class ClassificationAgent extends Agent implements RserveCallback {
     public void doKfoldCrossvalidation(RConnection c, int k, String data
     ) {
         System.out.println("kFoldCrossvalidComputing");
-        String s = "";
-        int kf = k;
-        if (kf <= 1) {
+        StringBuilder s = new StringBuilder();
+        if (k <= 1) {
             System.out.println("You can't fold by one. kfold requires at least two folds");
         }
-        String[] ifs = new String[kf + 1];
-        matrixNames = new String[kf + 1];
+        String[] ifs = new String[k + 1];
+        matrixNames = new String[k + 1];
         //https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
         //We run our shuffling and folds creation 
         doEval(c, "theData<-allData[sample(nrow(" + data + ")),]");
@@ -253,7 +250,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
         //For what ever number the user has entered, we create the appropriate string containing the necessary
         //amount of matrixes
         //We also add to matrixNames array for later use
-        for (int i = 1; i < kf + 1; i++) {
+        for (int i = 1; i < k + 1; i++) {
             if (i == 1) {
                 ifs[i] = "if (i == 1)\n"
                         + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)";
@@ -263,10 +260,10 @@ public class ClassificationAgent extends Agent implements RserveCallback {
                         + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)\n";
                 matrixNames[i] = "confusionMatrix_" + i + "";
             }
-            s = s + ifs[i];
+            s.append(ifs[i]);
         }
         //loop amount is based on the user input stored in kf
-        String crossvalidation = "for(i in 1:" + kf + "){\n"
+        String crossvalidation = "for(i in 1:" + k + "){\n"
                 + "testIdx<-which(folds==i,arr.ind=TRUE)\n"
                 + "testingData<-theData[testIdx, ]\n"
                 + "trainingData<-theData[-testIdx, ]\n"
@@ -307,9 +304,7 @@ public class ClassificationAgent extends Agent implements RserveCallback {
             } else {
                 System.out.println(x.asString());
             }
-        } catch (RserveException | REXPMismatchException ex) {
-            Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (REngineException ex) {
+        } catch (REXPMismatchException | REngineException ex) {
             Logger.getLogger(ClassificationAgent.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             c.close();

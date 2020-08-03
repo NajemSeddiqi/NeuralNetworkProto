@@ -9,10 +9,12 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
@@ -20,7 +22,6 @@ import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 /**
- *
  * @author Najem
  */
 public class ClassificationAgent extends Agent implements RserveInterface {
@@ -64,22 +65,22 @@ public class ClassificationAgent extends Agent implements RserveInterface {
      * This method runs every necessary function needed to complete our task
      *
      * @param data the data from DataAgent
-     *
      */
     @Override
     public void transformation(Serializable data) {
-        List<List<Student>> ourData = ((List<List<Student>>) data);
+        @SuppressWarnings("unchecked")
+        List<List<Student>> ourData = (List<List<Student>>) data;
         List<Student> trainingData = ourData.get(0);
         List<Student> testingData = ourData.get(1);
         String[] labelNames = {"STG", "SCG", "STR", "LPR", "PEG", "UNS"};
-        String[] train_Vectors = new String[6];
-        String[] test_Vectors = new String[6];
+        var train_Vectors = new String[6];
+        var test_Vectors = new String[6];
         //for each loop, we run doVector which creates our vectors (training vectors)
-        for (int i = 0; i < labelNames.length; i++) {
+        for (var i = 0; i < labelNames.length; i++) {
             train_Vectors[i] = doVector(trainingData, labelNames[i]);
         }
         //Testing vectors
-        for (int i = 0; i < labelNames.length; i++) {
+        for (var i = 0; i < labelNames.length; i++) {
             test_Vectors[i] = doVector(testingData, labelNames[i]);
         }
 
@@ -116,7 +117,7 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     ) {
         try {
             System.out.println("runLibraries");
-            for (String lib : libs) {
+            for (var lib : libs) {
                 doEval(c, "library(\"" + lib + "\")");
                 System.out.println(lib);
             }
@@ -130,9 +131,9 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     //Create vectors based on case names being the column names
     @Override
     public String doVector(List<Student> data, String cName) {
-        StringBuilder st = new StringBuilder(cName + "<-c(");
+        var st = new StringBuilder(cName + "<-c(");
         String comma = ", ";
-        for (Student dt : data) {
+        for (var dt : data) {
             switch (cName) {
                 case "STG":
                     st.append(dt.getSTG()).append(comma);
@@ -162,8 +163,8 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     //For each loop, we add the vectors to the our data frame
     @Override
     public String doDataFrame(String[] cNames, String dName) {
-        StringBuilder dataFrame = new StringBuilder(dName + "<-data.frame(");
-        for (int i = 0; i < cNames.length; i++) {
+        var dataFrame = new StringBuilder(dName + "<-data.frame(");
+        for (var i = 0; i < cNames.length; i++) {
             if (i != 5) {
                 dataFrame.append(cNames[i]).append(", ");
             } else {
@@ -210,7 +211,7 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     //REXP can be used to capture error message when you're debugging
     @Override
     public void doEvalArray(RConnection c, String[] evals) {
-        for (String eval : evals) {
+        for (var eval : evals) {
             try {
                 REXP response = c.parseAndEval("try(eval(" + eval + "))");
                 if (response.inherits("try-error")) {
@@ -237,11 +238,11 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     public void doKfoldCrossvalidation(RConnection c, int k, String data
     ) {
         System.out.println("kFoldCrossvalidComputing");
-        StringBuilder s = new StringBuilder();
+        var s = new StringBuilder();
         if (k <= 1) {
             System.out.println("You can't fold by one. kfold requires at least two folds");
         }
-        String[] ifs = new String[k + 1];
+        var ifs = new String[k + 1];
         matrixNames = new String[k + 1];
         //https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
         //We run our shuffling and folds creation 
@@ -250,7 +251,7 @@ public class ClassificationAgent extends Agent implements RserveInterface {
         //For what ever number the user has entered, we create the appropriate string containing the necessary
         //amount of matrixes
         //We also add to matrixNames array for later use
-        for (int i = 1; i < k + 1; i++) {
+        for (var i = 1; i < k + 1; i++) {
             if (i == 1) {
                 ifs[i] = "if (i == 1)\n"
                         + "confusionMatrix_" + i + "<-table(Target = testingData$UNS, Predicted = result)";
@@ -272,7 +273,6 @@ public class ClassificationAgent extends Agent implements RserveInterface {
                 + "}";
         //We send the string to our computation method to be run
         doComputations(c, crossvalidation);
-
     }
 
     @Override
@@ -286,7 +286,7 @@ public class ClassificationAgent extends Agent implements RserveInterface {
             x = c.parseAndEval("try(" + s + ",silent=TRUE)");
             if (!x.inherits("try-error")) {
                 //For each loop of the matrixNames length
-                for (int i = 1; i < matrixNames.length; i++) {
+                for (var i = 1; i < matrixNames.length; i++) {
                     //We print out each matrix
                     String result = c.eval("paste(capture.output(" + matrixNames[i] + "), collapse='\\n')").asString();
                     System.out.println("\n" + result);

@@ -75,7 +75,7 @@ public class ClassificationAgent extends Agent implements RserveInterface {
         String[] labelNames = {"STG", "SCG", "STR", "LPR", "PEG", "UNS"};
         var train_Vectors = new String[6];
         var test_Vectors = new String[6];
-        //for each loop, we run doVector which creates our vectors (training vectors)
+        //for each loop, we run doVector which creates our vectors (training vectors)/////
         for (var i = 0; i < labelNames.length; i++) {
             train_Vectors[i] = doVector(trainingData, labelNames[i]);
         }

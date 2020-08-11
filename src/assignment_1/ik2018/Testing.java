@@ -19,7 +19,7 @@ import org.rosuda.REngine.Rserve.RserveException;
  *
  * @author Najem
  */
-public class testing {
+public class Testing {
 
     /**
      * @param args the command line arguments

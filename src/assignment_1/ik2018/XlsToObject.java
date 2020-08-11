@@ -8,6 +8,7 @@ package assignment_1.ik2018;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -16,32 +17,35 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 /**
- *
  * @author Najem
  */
-public class XlsToObject {
+class XlsToObject {
 
     private Workbook wb;
     private int sheetAt;
     private ArrayList<Student> studentList;
-    
-    /**Creates an instance of this class
-     * @param workbbok the workbook of our data
+
+    /**
+     * Creates an instance of this class
+     *
+     * @param workbook    the workbook of our data
      * @param sheetNumber specify the sheet number of said said
      **/
-    public XlsToObject(Workbook workbbok, int sheetNumber) {
-        this.wb = workbbok;
+    XlsToObject(Workbook workbook, int sheetNumber) {
+        this.wb = workbook;
         this.sheetAt = sheetNumber;
+        studentList = new ArrayList<>();
     }
-    
-    /**Creates an arraylist of student type by mapping the cells to student fields
-     * @return the arraylist of student 
-     * @throws java.io.IOException 
+
+    /**
+     * Creates an arraylist of student type by mapping the cells to student fields
+     *
+     * @return the arraylist of student
+     * @throws java.io.IOException
      **/
-    public ArrayList<Student> getData() throws IOException {
+    ArrayList<Student> getData() throws IOException {
         try {
             Sheet sheet = wb.getSheetAt(sheetAt);
-            studentList = new ArrayList<>();
             DataFormatter formatter = new DataFormatter();
             for (int i = sheet.getFirstRowNum() + 1; i < sheet.getLastRowNum() + 1; i++) {
                 Student student = new Student();
@@ -70,7 +74,7 @@ public class XlsToObject {
                     }
                     if (j == 5) {
                         String u = cell.getStringCellValue();
-                        String uns = '"' + u.substring(0) + '"';
+                        String uns = '"' + u + '"';
                         student.setUNS(uns);
                     }
                 }

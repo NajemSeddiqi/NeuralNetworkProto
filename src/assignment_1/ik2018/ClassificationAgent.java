@@ -129,30 +129,31 @@ public class ClassificationAgent extends Agent implements RserveInterface {
     }
 
     //Create vectors based on case names being the column names
-    @Override
-    public String doVector(List<Student> data, String cName) {
+    private String doVector(List<Student> data, String cName) {
         var st = new StringBuilder(cName + "<-c(");
-        String comma = ", ";
-        for (var dt : data) {
+        var comma = ", ";
+        for (var d : data) {
             switch (cName) {
                 case "STG":
-                    st.append(dt.getSTG()).append(comma);
+                    st.append(d.getSTG()).append(comma);
                     break;
                 case "SCG":
-                    st.append(dt.getSCG()).append(comma);
+                    st.append(d.getSCG()).append(comma);
                     break;
                 case "STR":
-                    st.append(dt.getSTR()).append(comma);
+                    st.append(d.getSTR()).append(comma);
                     break;
                 case "LPR":
-                    st.append(dt.getLPR()).append(comma);
+                    st.append(d.getLPR()).append(comma);
                     break;
                 case "PEG":
-                    st.append(dt.getPEG()).append(comma);
+                    st.append(d.getPEG()).append(comma);
                     break;
                 case "UNS":
-                    st.append(dt.getUNS()).append(comma);
+                    st.append(d.getUNS()).append(comma);
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + cName);
             }
         }
         //We need to substring the last value otherwise a comma follows it and that returns an error

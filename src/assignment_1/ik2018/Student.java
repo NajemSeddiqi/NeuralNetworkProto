@@ -12,61 +12,61 @@ import java.io.Serializable;
  */
 public class Student implements Serializable {
 
-    public String STG;
-    public String SCG;
-    public String STR;
-    public String LPR;
-    public String PEG;
-    public String UNS;
+    private String STG;
+    private String SCG;
+    private String STR;
+    private String LPR;
+    private String PEG;
+    private String UNS;
 
-    public Student() {
+    Student() {
     }
 
-    public String getSTG() {
+    String getSTG() {
         return STG;
     }
 
-    public void setSTG(String STG) {
+    void setSTG(String STG) {
         this.STG = STG;
     }
 
-    public String getSCG() {
+    String getSCG() {
         return SCG;
     }
 
-    public void setSCG(String SCG) {
+    void setSCG(String SCG) {
         this.SCG = SCG;
     }
 
-    public String getSTR() {
+    String getSTR() {
         return STR;
     }
 
-    public void setSTR(String STR) {
+    void setSTR(String STR) {
         this.STR = STR;
     }
 
-    public String getLPR() {
+    String getLPR() {
         return LPR;
     }
 
-    public void setLPR(String LPR) {
+    void setLPR(String LPR) {
         this.LPR = LPR;
     }
 
-    public String getPEG() {
+    String getPEG() {
         return PEG;
     }
 
-    public void setPEG(String PEG) {
+    void setPEG(String PEG) {
         this.PEG = PEG;
     }
 
-    public String getUNS() {
+    String getUNS() {
         return UNS;
     }
 
-    public void setUNS(String UNS) {
+    void setUNS(String UNS) {
         this.UNS = UNS;
     }
 

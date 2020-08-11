@@ -8,7 +8,6 @@ package assignment_1.ik2018;
 import java.io.Serializable;
 
 /**
- *
  * @author Najem
  */
 public class Student implements Serializable {
@@ -21,17 +20,6 @@ public class Student implements Serializable {
     public String UNS;
 
     public Student() {
-    }
-
-    public Student(String stg, String scg, String str, String lpr, String peg, String uns) {
-        super();
-        this.STG = stg;
-        this.SCG = scg;
-        this.STR = str;
-        this.LPR = lpr;
-        this.PEG = peg;
-        this.UNS = uns;
-
     }
 
     public String getSTG() {
@@ -86,7 +74,6 @@ public class Student implements Serializable {
     public String toString() {
         return "" + "STG=" + STG + ", SCG=" + SCG + ", STR=" + STR + ", LPR=" + LPR + ", PEG=" + PEG + ", UNS=" + UNS;
     }
-    
-   
+
 
 }

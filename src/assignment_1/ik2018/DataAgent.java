@@ -10,19 +10,20 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 /**
- *
  * @author Najem
  */
 public class DataAgent extends Agent {
@@ -57,8 +58,8 @@ public class DataAgent extends Agent {
         sendMsg(ourData);
         return null;
     }
-    
-    private void sendMsg(ArrayList ourData){
+
+    private void sendMsg(ArrayList ourData) {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         //We add a receiver and specify a language
         msg.addReceiver(new AID("V", AID.ISLOCALNAME));

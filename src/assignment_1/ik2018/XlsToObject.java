@@ -73,8 +73,7 @@ class XlsToObject {
                         student.setPEG(peg);
                     }
                     if (j == 5) {
-                        String u = cell.getStringCellValue();
-                        String uns = '"' + u + '"';
+                        String uns = '"' + cell.getStringCellValue() + '"';
                         student.setUNS(uns);
                     }
                 }

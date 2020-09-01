@@ -14,22 +14,13 @@ import org.rosuda.REngine.Rserve.RserveException;
 /**
  * @author Najem
  */
-public interface RserveInterface {
+public interface RserveInterface extends EvaluationInterface, InitRserveInterface {
     /**
      * Transforms the data from the sending agent
      *
      * @param data whatever data
      **/
     void transformation(Serializable data);
-
-    /**
-     * Uses Rserve to run R libraries
-     *
-     * @param c    the RConnection object
-     * @param libs Array of strings containing specified libraries
-     * @throws RserveException throws an RserveException
-     **/
-    void runLibraries(RConnection c, String[] libs) throws RserveException;
 
     /**
      * Creates a data frame
@@ -57,29 +48,6 @@ public interface RserveInterface {
     void normalizeDataframe(RConnection c, String dName);
 
     /**
-     * Creates an RConnection object
-     *
-     * @return returns a an RConnection object
-     **/
-    RConnection getRCon();
-
-    /**
-     * Runs an eval through Rserve
-     *
-     * @param c    the RConnection object
-     * @param eval string of the code to run in Rserve
-     **/
-    void doEval(RConnection c, String eval);
-
-    /**
-     * Run an array of evals through Rserve
-     *
-     * @param c     the RConnection object
-     * @param evals the array of codes to run in Rserve
-     **/
-    void doEvalArray(RConnection c, String[] evals);
-
-    /**
      * Begins the crossvalidation process by shuffling and creating folds
      *
      * @param c    the RConnection object
@@ -103,6 +71,5 @@ public interface RserveInterface {
      * @param s string of the code to be run through Rserve
      **/
     void doComputations(RConnection c, String s);
-
 
 }
